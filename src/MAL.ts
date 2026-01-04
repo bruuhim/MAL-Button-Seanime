@@ -59,8 +59,8 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // Logo URL
-        const logoUrl = "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/scr/mal-icon.png";
+        // Logo URL - using your custom logo.png
+        const logoUrl = "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/logo.png";
         
         // Create MAL button with logo
         const malButton = ctx.action.newAnimePageButton({ 
