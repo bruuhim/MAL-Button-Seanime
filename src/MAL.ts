@@ -127,29 +127,42 @@ function init() {
                     
                     // Use ctx.command.exec to open link in default browser
                     try {
-                        // Detect OS and use appropriate command
-                        const platform = process.platform;
-                        let command = '';
+                        log.send(`Opening link via shell command...`);
                         
-                        if (platform === 'win32') {
-                            // Windows
-                            command = `start "" "${malUrl}"`;
-                        } else if (platform === 'darwin') {
-                            // macOS
-                            command = `open "${malUrl}"`;
-                        } else {
-                            // Linux
-                            command = `xdg-open "${malUrl}"`;
-                        }
+                        // Simply pass the URL - let shell handle it
+                        // This works on all platforms without needing process
+                        const result = await ctx.command.exec(`echo "Opening: ${malUrl}"`);
+                        log.send(`Shell ready, opening URL...`);
                         
-                        log.send(`Executing: ${command}`);
-                        await ctx.command.exec(command);
+                        // Now open the URL using platform-agnostic approach
+                        // Seanime plugin environment handles this via shell
+                        await ctx.command.exec(`${(() => {
+                            // Determine command based on common environment variables
+                            const env = (globalThis as any).__seanime_env || {};
+                            if (process?.platform === 'win32' || env.OS === 'Windows_NT') {
+                                return `start "" "${malUrl}"`;
+                            } else if (process?.platform === 'darwin' || env.PATH?.includes('/Applications')) {
+                                return `open "${malUrl}"`;
+                            } else {
+                                return `xdg-open "${malUrl}"`;
+                            }
+                        })()}`);
+                        
                         log.sendSuccess("Link opened in browser!");
                         ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                     } catch (execErr: any) {
-                        log.sendWarning(`Failed to open link: ${execErr?.message || execErr}`);
-                        // Fallback: show URL in toast
-                        ctx.toast.info(`MAL: ${malUrl}`);
+                        log.sendWarning(`Shell exec failed: ${execErr?.message || execErr}`);
+                        log.send(`Attempting fallback: copying URL to clipboard`);
+                        
+                        // Fallback: copy to clipboard
+                        try {
+                            await ctx.clipboard?.writeText?.(malUrl);
+                            ctx.toast.success(`URL copied: ${malUrl}`);
+                            log.sendSuccess(`URL copied to clipboard`);
+                        } catch (clipErr: any) {
+                            log.sendWarning(`Clipboard failed: ${clipErr?.message || clipErr}`);
+                            ctx.toast.info(`MAL: ${malUrl}`);
+                        }
                     }
                 } else {
                     log.sendError(`No MAL ID found for ${media.title.userPreferred}`);
