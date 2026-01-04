@@ -125,46 +125,21 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // Debug: Log all available globals and Tauri
-                    log.send(`=== DEBUG: Checking available APIs ===`);
-                    const tauri = (globalThis as any).__TAURI__;
-                    log.send(`__TAURI__ exists: ${!!tauri}`);
-                    if (tauri) {
-                        const keys = Object.keys(tauri);
-                        log.send(`__TAURI__ keys: ${keys.join(', ') || '(empty)'}`);
-                        keys.forEach((key: string) => {
-                            const value = tauri[key];
-                            const type = typeof value;
-                            log.send(`  - ${key}: ${type}`);
-                            if (type === 'object' && value) {
-                                const subKeys = Object.keys(value).slice(0, 10);
-                                log.send(`    └─ ${subKeys.join(', ')}`);
-                            }
-                        });
-                    }
-                    
-                    // Try shell module specifically
-                    log.send(`=== Attempting to call open ===`);
+                    // Try ctx.browser.openUrl (Seanime plugin API)
+                    log.send(`Attempting ctx.browser.openUrl()...`);
                     try {
-                        if (tauri?.shell?.open) {
-                            log.send(`shell.open is available!`);
-                            await tauri.shell.open(malUrl);
-                            log.sendSuccess(`✓ Opened in browser!`);
+                        if ((ctx as any).browser?.openUrl) {
+                            log.send(`ctx.browser.openUrl is available`);
+                            await (ctx as any).browser.openUrl(malUrl);
+                            log.sendSuccess(`✓ Opened via ctx.browser.openUrl!`);
                             ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                         } else {
-                            log.sendError(`shell.open not found`);
-                            if (tauri?.invoke) {
-                                log.send(`Trying invoke('open', ...)`);
-                                await tauri.invoke('open', { path: malUrl });
-                                log.sendSuccess(`✓ Opened via invoke!`);
-                                ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
-                            } else {
-                                log.sendError(`No invoke method available`);
-                                ctx.toast.error(`Cannot open link - Tauri APIs not available`);
-                            }
+                            log.sendWarning(`ctx.browser.openUrl not available`);
+                            log.send(`Available ctx methods: ${Object.keys(ctx).join(', ')}`);
+                            ctx.toast.error(`Plugin API does not support opening URLs`);
                         }
                     } catch (err: any) {
-                        log.sendError(`Invoke failed: ${err?.message || err}`);
+                        log.sendError(`ctx.browser.openUrl failed: ${err?.message || err}`);
                         ctx.toast.error(`Failed: ${err?.message || err}`);
                     }
                 } else {
