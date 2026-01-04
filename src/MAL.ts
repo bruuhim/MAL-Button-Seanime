@@ -50,11 +50,12 @@ function init() {
             },
         };
         
-        // Tray for showing logs
+        // Tray for showing logs with icon
         const tray = ctx.newTray({
             tooltipText: "MAL Button Logs",
             withContent: true,
             width: '600px',
+            iconUrl: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/icon.png",
         });
         
         const showLogsState = ctx.state<boolean>(false);
@@ -124,14 +125,26 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // Copy URL to clipboard
-                    navigator.clipboard.writeText(malUrl).then(() => {
-                        log.sendSuccess("URL copied to clipboard!");
-                        ctx.toast.success(`MAL link copied!`);
-                    }).catch((err: any) => {
-                        log.sendError(`Failed to copy: ${err?.message || err}`);
-                        ctx.toast.error(`Failed to copy link`);
-                    });
+                    // Try to copy to clipboard using the clipboard API available in plugins
+                    try {
+                        // Use the builtin clipboard if available
+                        if (typeof $clipboard !== 'undefined') {
+                            $clipboard.writeText(malUrl);
+                            log.sendSuccess("URL copied to clipboard!");
+                            ctx.toast.success(`MAL link copied!`);
+                        } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                            await navigator.clipboard.writeText(malUrl);
+                            log.sendSuccess("URL copied to clipboard!");
+                            ctx.toast.success(`MAL link copied!`);
+                        } else {
+                            // Fallback: just log the URL
+                            log.sendWarning("Clipboard API not available, URL logged");
+                            ctx.toast.info(`URL: ${malUrl}`);
+                        }
+                    } catch (clipErr: any) {
+                        log.sendWarning(`Clipboard copy failed: ${clipErr?.message || clipErr}`);
+                        ctx.toast.info(`URL: ${malUrl}`);
+                    }
                 } else {
                     log.sendError(`No MAL ID found for ${media.title.userPreferred}`);
                     ctx.toast.error(`No MAL link found for ${media.title.userPreferred}`);
