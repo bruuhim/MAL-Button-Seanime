@@ -125,25 +125,31 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // Try to copy to clipboard using the clipboard API available in plugins
+                    // Use ctx.command.exec to open link in default browser
                     try {
-                        // Use the builtin clipboard if available
-                        if (typeof $clipboard !== 'undefined') {
-                            $clipboard.writeText(malUrl);
-                            log.sendSuccess("URL copied to clipboard!");
-                            ctx.toast.success(`MAL link copied!`);
-                        } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                            await navigator.clipboard.writeText(malUrl);
-                            log.sendSuccess("URL copied to clipboard!");
-                            ctx.toast.success(`MAL link copied!`);
+                        // Detect OS and use appropriate command
+                        const platform = process.platform;
+                        let command = '';
+                        
+                        if (platform === 'win32') {
+                            // Windows
+                            command = `start "" "${malUrl}"`;
+                        } else if (platform === 'darwin') {
+                            // macOS
+                            command = `open "${malUrl}"`;
                         } else {
-                            // Fallback: just log the URL
-                            log.sendWarning("Clipboard API not available, URL logged");
-                            ctx.toast.info(`URL: ${malUrl}`);
+                            // Linux
+                            command = `xdg-open "${malUrl}"`;
                         }
-                    } catch (clipErr: any) {
-                        log.sendWarning(`Clipboard copy failed: ${clipErr?.message || clipErr}`);
-                        ctx.toast.info(`URL: ${malUrl}`);
+                        
+                        log.send(`Executing: ${command}`);
+                        await ctx.command.exec(command);
+                        log.sendSuccess("Link opened in browser!");
+                        ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
+                    } catch (execErr: any) {
+                        log.sendWarning(`Failed to open link: ${execErr?.message || execErr}`);
+                        // Fallback: show URL in toast
+                        ctx.toast.info(`MAL: ${malUrl}`);
                     }
                 } else {
                     log.sendError(`No MAL ID found for ${media.title.userPreferred}`);
