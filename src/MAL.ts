@@ -125,33 +125,31 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // Use ctx.command.exec to open link in default browser
+                    // Use $osExtra.asyncCmd to open link
                     try {
-                        log.send(`Opening link via shell command...`);
+                        log.send(`Opening link using system open command...`);
                         
-                        // Simply pass the URL - let shell handle it
-                        // This works on all platforms without needing process
-                        const result = await ctx.command.exec(`echo "Opening: ${malUrl}"`);
-                        log.send(`Shell ready, opening URL...`);
-                        
-                        // Now open the URL using platform-agnostic approach
-                        // Seanime plugin environment handles this via shell
-                        await ctx.command.exec(`${(() => {
-                            // Determine command based on common environment variables
-                            const env = (globalThis as any).__seanime_env || {};
-                            if (process?.platform === 'win32' || env.OS === 'Windows_NT') {
-                                return `start "" "${malUrl}"`;
-                            } else if (process?.platform === 'darwin' || env.PATH?.includes('/Applications')) {
-                                return `open "${malUrl}"`;
-                            } else {
-                                return `xdg-open "${malUrl}"`;
-                            }
-                        })()}`);
-                        
-                        log.sendSuccess("Link opened in browser!");
-                        ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
-                    } catch (execErr: any) {
-                        log.sendWarning(`Shell exec failed: ${execErr?.message || execErr}`);
+                        const cmd = (globalThis as any).$osExtra?.asyncCmd?.("open", malUrl);
+                        if (cmd) {
+                            cmd.run((data: any, err: any, exitCode: any, signal: any) => {
+                                if (exitCode !== undefined) {
+                                    if (exitCode === 0) {
+                                        log.sendSuccess(`Browser opened successfully (exit code: ${exitCode})`);
+                                    } else {
+                                        log.sendWarning(`Open command exited with code: ${exitCode}`);
+                                    }
+                                }
+                                if (err) {
+                                    log.sendWarning(`Error: ${$toString?.(err) || err}`);
+                                }
+                            });
+                            
+                            ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
+                        } else {
+                            throw new Error("$osExtra.asyncCmd not available");
+                        }
+                    } catch (cmdErr: any) {
+                        log.sendWarning(`Async open failed: ${cmdErr?.message || cmdErr}`);
                         log.send(`Attempting fallback: copying URL to clipboard`);
                         
                         // Fallback: copy to clipboard
