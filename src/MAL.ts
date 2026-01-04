@@ -59,13 +59,10 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // Logo URL - using your custom logo.png
-        const logoUrl = "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/logo.png";
-        
         // Create MAL button with logo
         const malButton = ctx.action.newAnimePageButton({ 
             label: "",
-            iconUrl: logoUrl,
+            iconUrl: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/logo.png",
         });
         malButton.mount();
         
@@ -128,8 +125,8 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`Opening URL: ${malUrl}`);
                     
-                    // Use ctx.openLink instead of document anchor
-                    ctx.openLink(malUrl);
+                    // Use window.open to open the link
+                    window.open(malUrl, '_blank');
                     log.sendSuccess("Link opened!");
                     
                     ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
