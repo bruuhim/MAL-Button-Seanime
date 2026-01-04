@@ -125,51 +125,22 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // Try multiple approaches
-                    let opened = false;
-                    
-                    // 1. Try Tauri API if available
+                    // Try Tauri shell.open via globalThis
                     try {
-                        log.send(`Attempting Tauri open API...`);
-                        const tauri = (window as any).__TAURI__;
-                        if (tauri?.shell) {
+                        log.send(`Attempting Tauri shell.open()...`);
+                        const tauri = (globalThis as any).__TAURI__;
+                        if (tauri?.shell?.open) {
+                            log.send(`Tauri shell available, invoking...`);
                             await tauri.shell.open(malUrl);
-                            log.sendSuccess(`Opened via Tauri shell.open()!`);
-                            opened = true;
+                            log.sendSuccess(`✓ Opened in browser via Tauri!`);
+                            ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
+                        } else {
+                            log.sendWarning(`Tauri shell.open not found in __TAURI__`);
+                            log.send(`Available: ${Object.keys(tauri || {}).join(', ')}`);
                         }
                     } catch (tauriErr: any) {
-                        log.sendWarning(`Tauri API unavailable: ${tauriErr?.message || tauriErr}`);
-                    }
-                    
-                    // 2. Try window.open as fallback
-                    if (!opened) {
-                        try {
-                            log.send(`Attempting window.open()...`);
-                            const result = window.open(malUrl, '_blank');
-                            if (result) {
-                                log.sendSuccess(`Opened via window.open()!`);
-                                opened = true;
-                            } else {
-                                log.sendWarning(`window.open returned null (blocked?)`);
-                            }
-                        } catch (openErr: any) {
-                            log.sendWarning(`window.open failed: ${openErr?.message || openErr}`);
-                        }
-                    }
-                    
-                    // 3. Fallback to clipboard
-                    if (!opened) {
-                        log.send(`All browser methods failed, copying to clipboard...`);
-                        try {
-                            await ctx.clipboard?.writeText?.(malUrl);
-                            log.sendSuccess(`✓ URL copied to clipboard - paste in browser!`);
-                            ctx.toast.success(`URL copied: ${malUrl}`);
-                        } catch (clipErr: any) {
-                            log.sendWarning(`Clipboard failed: ${clipErr?.message || clipErr}`);
-                            ctx.toast.info(`MAL: ${malUrl}`);
-                        }
-                    } else {
-                        ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
+                        log.sendError(`Tauri open failed: ${tauriErr?.message || tauriErr}`);
+                        ctx.toast.error(`Failed to open link: ${tauriErr?.message || tauriErr}`);
                     }
                 } else {
                     log.sendError(`No MAL ID found for ${media.title.userPreferred}`);
