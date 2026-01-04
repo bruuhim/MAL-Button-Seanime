@@ -1,11 +1,41 @@
-# MAL Button - Seanime Extension
+⚠️ # ARCHIVED - MAL Button for Seanime
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Version](https://img.shields.io/badge/version-1.1.0-brightgreen)
+![Status](https://img.shields.io/badge/status-ARCHIVED-red)
+
+## Why This Is Archived
+
+This plugin **does not work** due to fundamental Seanime plugin sandbox limitations:
+
+- ❌ Plugins cannot access `$os` (system commands)
+- ❌ Plugins cannot access `__TAURI__` (desktop app APIs)  
+- ❌ Plugins cannot open URLs or execute system operations
+- ✅ Only core Seanime features (like AniDB/AniList buttons) have these permissions
+
+### Investigation Log
+
+1. **Plugin Approach** - Attempted to add a MAL button as a Seanime plugin
+2. **Sandbox Discovery** - Realized plugins are sandboxed and can't open URLs
+3. **Testing** - v1.18.0 attempted `$os.cmd("open", url)` but failed: `$os is not defined`
+4. **Solution** - Filed feature request on Seanime: [Add MyAnimeList button to anime pages](https://github.com/5rahim/seanime/issues/new?template=feature_request.md)
+5. **Recommendation** - Native implementation in Seanime core is the proper solution
+
+## What Should Happen Instead
+
+A native MAL button (like the existing "Open on AniDB" button) should be added to Seanime core with:
+- Full access to system APIs
+- Proper error handling  
+- Consistent UX with other quick-action buttons
+
+---
+
+## Original Project (For Reference)
+
+# MAL Button - Seanime Extension
 
 A lightweight Seanime plugin that adds a convenient button to open the current anime on **MyAnimeList** directly from the anime details page.
 
-## Features
+### Features
 
 ✨ **One-Click Access** - Jump to MAL with a single click  
 🚀 **Zero Configuration** - Install and use immediately  
@@ -13,41 +43,13 @@ A lightweight Seanime plugin that adds a convenient button to open the current a
 🔗 **Smart Linking** - Uses AniList's external links to find MAL ID  
 ✅ **Confirmation Modal** - Verify before opening external link
 
-## Installation
+### Installation
 
-### Method 1: Seanime Extension Manager (Recommended)
+⚠️ **Note: This will not work due to plugin sandbox limitations** ⚠️
 
-1. Open **Seanime**
-2. Go to **Settings** → **Extensions** → **Installed**
-3. Click **Add extensions** (button in top right)
-4. Paste this manifest URL:
-   ```
-   https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/manifest.json
-   ```
-5. Click Install
-6. Restart Seanime
+The plugin code is preserved here as documentation of the investigation process.
 
-### Method 2: Manual Installation
-
-1. Clone this repository or download the files
-2. Copy the `src/manifest.json` and `src/MAL.ts` files to your Seanime extensions folder
-3. Restart Seanime
-
-## Usage
-
-1. Navigate to any anime details page in Seanime
-2. Click the **"MAL"** button that appears
-3. A confirmation modal appears showing the anime title
-4. Click **"Open MAL"** to open the anime's MyAnimeList page in your browser
-5. Or click **"Cancel"** to dismiss
-
-## What's New (v1.1.0)
-
-✅ **Fixed URL opening** - Now uses proper tray-based approach (same as Watch Order extension)  
-✅ **Confirmation modal** - Shows which anime you're about to open  
-✅ **Better UX** - Clear visual feedback before opening external links
-
-## How It Works
+### How It Was Supposed to Work
 
 The plugin:
 - Detects when you're on an anime page
@@ -55,86 +57,28 @@ The plugin:
 - Shows a confirmation modal with the anime title
 - Opens the corresponding MAL URL: `https://myanimelist.net/anime/{id}`
 
-## Troubleshooting
-
-**Button doesn't appear?**
-- Make sure you're on an anime details page (not manga or characters)
-- Restart Seanime
-- Check that the extension is installed in Extensions → Installed
-
-**"Could not find MAL entry" error?**
-- This anime might not be linked to MAL in AniList
-- Try updating the anime data in Seanime
-- Check if the anime exists on MyAnimeList
-
-**Clicking the button does nothing?**
-- Check that Seanime is updated to the latest version
-- Try reinstalling the extension: Remove it and reinstall via the manifest URL
-- Click "Check for updates" in Extensions panel
-
-## Requirements
-
-- **Seanime** (latest version recommended)
-- **Internet connection**
-
-## Permissions
-
-This plugin requires **no special permissions** - it only uses:
-- AniList API (already available in Seanime)
-- System URL/browser opener (to open MAL in your browser)
-
-## Development
-
-### File Structure
-```
-.
-├── src/
-│   ├── manifest.json    # Plugin metadata
-│   └── MAL.ts           # Main plugin code
-├── README.md
-└── LICENSE
-```
-
-### Building
-
-No build step needed - TypeScript is compiled by Seanime at runtime.
-
-### Modifying
-
-Edit `src/MAL.ts` to customize:
-- Button label: Change `"MAL"` in `newAnimePageButton({ label: "MAL" })`
-- Toast messages: Modify `ctx.toast.alert()` calls
-- Confirmation text: Update the tray modal text
-- URL format: Modify the `malUrl` construction
-
-## Updates
-
-**Seanime automatically checks for updates** in the Extensions panel. Click "Check for updates" to get the latest version with fixes and improvements.
-
 ### Version History
 
+**v1.18.0** (2026-01-04)
+- Attempted to use `$os.cmd("open", url)` for URL opening
+- Failed due to plugin sandbox restrictions
+- Marked as archived
+
 **v1.1.0** (2026-01-04)
-- Fixed URL opening using tray-based approach
 - Added confirmation modal
 - Better error handling
 
 **v1.0.0** (2026-01-04)
 - Initial release
 
-## License
+### License
 
 MIT - Feel free to use, modify, and distribute
 
-## Author
+### Author
 
 **bruuhim** - [GitHub](https://github.com/bruuhim)
 
-## Related Projects
-
-- [Watch Order Seanime](https://github.com/Bas1874/Watch-Order-Seanime) - Another great Seanime extension
-- [Seanime Documentation](https://seanime.gitbook.io/) - Official Seanime docs
-- [Seanime Extensions](https://seanime.gitbook.io/seanime-extensions/) - Plugin development guide
-
 ---
 
-**Enjoy quick MAL access!** ✨
+**Proper solution coming via Seanime core feature request** ☝️
