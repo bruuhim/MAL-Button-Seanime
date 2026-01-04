@@ -125,22 +125,47 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // Try Tauri shell.open via globalThis
+                    // Debug: Log all available globals and Tauri
+                    log.send(`=== DEBUG: Checking available APIs ===`);
+                    const tauri = (globalThis as any).__TAURI__;
+                    log.send(`__TAURI__ exists: ${!!tauri}`);
+                    if (tauri) {
+                        const keys = Object.keys(tauri);
+                        log.send(`__TAURI__ keys: ${keys.join(', ') || '(empty)'}`);
+                        keys.forEach((key: string) => {
+                            const value = tauri[key];
+                            const type = typeof value;
+                            log.send(`  - ${key}: ${type}`);
+                            if (type === 'object' && value) {
+                                const subKeys = Object.keys(value).slice(0, 10);
+                                log.send(`    └─ ${subKeys.join(', ')}`);
+                            }
+                        });
+                    }
+                    
+                    // Try shell module specifically
+                    log.send(`=== Attempting to call open ===`);
                     try {
-                        log.send(`Attempting Tauri shell.open()...`);
-                        const tauri = (globalThis as any).__TAURI__;
                         if (tauri?.shell?.open) {
-                            log.send(`Tauri shell available, invoking...`);
+                            log.send(`shell.open is available!`);
                             await tauri.shell.open(malUrl);
-                            log.sendSuccess(`✓ Opened in browser via Tauri!`);
+                            log.sendSuccess(`✓ Opened in browser!`);
                             ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                         } else {
-                            log.sendWarning(`Tauri shell.open not found in __TAURI__`);
-                            log.send(`Available: ${Object.keys(tauri || {}).join(', ')}`);
+                            log.sendError(`shell.open not found`);
+                            if (tauri?.invoke) {
+                                log.send(`Trying invoke('open', ...)`);
+                                await tauri.invoke('open', { path: malUrl });
+                                log.sendSuccess(`✓ Opened via invoke!`);
+                                ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
+                            } else {
+                                log.sendError(`No invoke method available`);
+                                ctx.toast.error(`Cannot open link - Tauri APIs not available`);
+                            }
                         }
-                    } catch (tauriErr: any) {
-                        log.sendError(`Tauri open failed: ${tauriErr?.message || tauriErr}`);
-                        ctx.toast.error(`Failed to open link: ${tauriErr?.message || tauriErr}`);
+                    } catch (err: any) {
+                        log.sendError(`Invoke failed: ${err?.message || err}`);
+                        ctx.toast.error(`Failed: ${err?.message || err}`);
                     }
                 } else {
                     log.sendError(`No MAL ID found for ${media.title.userPreferred}`);
