@@ -59,8 +59,14 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // Create MAL button
-        const malButton = ctx.action.newAnimePageButton({ label: "MAL" });
+        // Logo URL
+        const logoUrl = "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/scr/mal-icon.png";
+        
+        // Create MAL button with logo
+        const malButton = ctx.action.newAnimePageButton({ 
+            label: "",
+            iconUrl: logoUrl,
+        });
         malButton.mount();
         
         // Handle button clicks
@@ -122,21 +128,9 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`Opening URL: ${malUrl}`);
                     
-                    // Create temporary invisible anchor and click it
-                    const anchor = document.createElement('a');
-                    anchor.href = malUrl;
-                    anchor.target = '_blank';
-                    anchor.rel = 'noopener noreferrer';
-                    
-                    // Append to body, click, and remove
-                    document.body.appendChild(anchor);
-                    log.send("Anchor created and appended");
-                    
-                    anchor.click();
-                    log.sendSuccess("Anchor clicked!");
-                    
-                    document.body.removeChild(anchor);
-                    log.send("Anchor removed");
+                    // Use ctx.openLink instead of document anchor
+                    ctx.openLink(malUrl);
+                    log.sendSuccess("Link opened!");
                     
                     ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                     log.sendSuccess("Toast notification sent");
