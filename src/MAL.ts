@@ -73,10 +73,10 @@ function init() {
             log.sendInfo(`Fetching full media object...`);
             
             try {
-                // Fetch full media object using $anilist API
-                const fullMedia = await $anilist.getAnime(media.id);
+                // Fetch full media object using ctx.anime.getAnimeEntry
+                const animeEntry = await ctx.anime.getAnimeEntry(media.id);
                 
-                if (!fullMedia) {
+                if (!animeEntry || !animeEntry.media) {
                     log.sendError(`Failed to fetch full media object`);
                     ctx.toast.alert(`Failed to fetch media data`);
                     showLogsState.set(true);
@@ -84,6 +84,7 @@ function init() {
                     return;
                 }
                 
+                const fullMedia = animeEntry.media;
                 log.sendSuccess(`Full media object fetched`);
                 
                 // Try to find MAL ID from external links
@@ -130,8 +131,8 @@ function init() {
                     ctx.toast.alert(`No MAL link found for ${fullMedia.title.userPreferred}`);
                 }
             } catch (error: any) {
-                log.sendError(`Exception: ${error.message}`);
-                ctx.toast.alert(`Error: ${error.message}`);
+                log.sendError(`Exception: ${error?.message || error}`);
+                ctx.toast.alert(`Error: ${error?.message || error}`);
             }
             
             // Show logs after a short delay
