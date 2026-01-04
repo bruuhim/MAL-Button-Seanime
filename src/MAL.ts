@@ -4,7 +4,7 @@
 function init() {
     $ui.register((ctx) => {
         
-        // Logging system (same as MALSync)
+        // Logging system
         const log = {
             id: "mal-button:logs",
             record(message: [string, "Info" | "Warning" | "Error" | "Log" | "Success"]) {
@@ -59,10 +59,9 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // Create MAL button with logo
+        // Create MAL button with text label
         const malButton = ctx.action.newAnimePageButton({ 
-            label: "",
-            iconUrl: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/logo.png",
+            label: "MAL",
         });
         malButton.mount();
         
@@ -123,14 +122,16 @@ function init() {
                 
                 if (malId) {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
-                    log.send(`Opening URL: ${malUrl}`);
+                    log.send(`MAL URL: ${malUrl}`);
                     
-                    // Use window.open to open the link
-                    window.open(malUrl, '_blank');
-                    log.sendSuccess("Link opened!");
-                    
-                    ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
-                    log.sendSuccess("Toast notification sent");
+                    // Copy URL to clipboard
+                    navigator.clipboard.writeText(malUrl).then(() => {
+                        log.sendSuccess("URL copied to clipboard!");
+                        ctx.toast.success(`MAL link copied!`);
+                    }).catch((err: any) => {
+                        log.sendError(`Failed to copy: ${err?.message || err}`);
+                        ctx.toast.error(`Failed to copy link`);
+                    });
                 } else {
                     log.sendError(`No MAL ID found for ${media.title.userPreferred}`);
                     ctx.toast.error(`No MAL link found for ${media.title.userPreferred}`);
