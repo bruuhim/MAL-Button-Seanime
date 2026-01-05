@@ -60,12 +60,12 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // v1.21.3: Use SYNC command API (not async) with proper error handling
+        // v1.21.4: Use $ARGS validator to accept any argument like echo command
         const openMalLink = (url: string) => {
             try {
                 log.send(`Opening MAL link via system command: ${url}`);
                 
-                // Use synchronous command API
+                // Use synchronous command API with separate arguments (like ls, grep, echo)
                 const cmd = $os.cmd("open", url);
                 cmd.start();
                 cmd.wait();
@@ -148,7 +148,7 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // v1.21.3: Use SYNC command API
+                    // v1.21.4: Pass URL as separate argument like echo command
                     openMalLink(malUrl);
                     ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                 } else {
@@ -240,6 +240,6 @@ function init() {
             return tray.stack([header, terminal], { gap: 2, style: { padding: "12px" }});
         });
         
-        log.sendInfo("MAL Button v1.21.3 initialized");
+        log.sendInfo("MAL Button v1.21.4 initialized");
     });
 }
