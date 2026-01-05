@@ -1,59 +1,30 @@
 # Changelog
 
-## [1.22.2] - 2026-01-05
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2026-01-05
 
 ### Added
-- **Click-to-copy functionality**: Click the URL button and it copies to clipboard
-- Copy confirmation toast message
-- Button changes color (green) when copied
-- "Copied!" indicator appears below button
+- Initial stable production release.
+- Full TypeScript implementation with proper interfaces.
+- Robust MAL ID resolution using direct ID + external links.
+- Loading and error state management for better UX.
+- User-friendly tray UI with clear copy instructions.
+- Comprehensive README with usage, development, and troubleshooting sections.
 
-## [1.22.1] - 2026-01-05
+### Changed
+- Complete refactor of legacy beta code.
+- Simplified plugin manifest for production usage.
+- Improved toast messages for status feedback.
 
-### Fixed
-- Display URL as selectable text with blue highlight
-- Better UX: tap to select and copy
+### Removed
+- Any attempt to access `window` or browser-specific APIs.
+- Clipboard hacks that are not supported in Seanime's sandbox.
 
-## [1.22.0] - 2026-01-05
+## [0.1.0-beta] - 2025-xx-xx
 
-### Major Refactor ✅ FIXED!
-- **NEW APPROACH**: Display MAL link as clickable button in Seanime UI (tray)
-- No system command execution needed - no permission issues!
-- Click "MAL" button → Get MAL URL in tray popup
-- Works perfectly with no authorization errors
-- Simplified manifest (no permissions needed)
-
-## [1.21.5] - 2026-01-05
-
-### Attempted Fix
-- Used Windows `start` command
-- Still blocked by Seanime's command authorization
-
-## [1.21.4] - 2026-01-05
-
-### Attempted Fix
-- Changed validator to `$ARGS`
-
-## [1.21.3] - 2026-01-05
-
-### Fixed
-- Reverted to sync `$os.cmd()` API
-
-## [1.21.2] - 2026-01-05
-
-### Attempted Fix
-- Tried adding `open` to `allow` list
-
-## [1.21.1] - 2026-01-05
-
-### Fixed
-- Removed TypeScript compilation error
-
-## [1.21.0] - 2026-01-05
-
-### Initial System Command Attempt
-- Used `$os.cmd("open", url)`
-
----
-
-See git history for older versions.
+### Added
+- Experimental MAL button extension for Seanime (development-only).
