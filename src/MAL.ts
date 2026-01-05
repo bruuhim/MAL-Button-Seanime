@@ -60,10 +60,12 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // v1.21.2: Use proper Seanime system command API with authorization
+        // v1.21.3: Use SYNC command API (not async) with proper error handling
         const openMalLink = (url: string) => {
             try {
-                log.send(`Opening link via system open command: ${url}`);
+                log.send(`Opening MAL link via system command: ${url}`);
+                
+                // Use synchronous command API
                 const cmd = $os.cmd("open", url);
                 cmd.start();
                 cmd.wait();
@@ -71,11 +73,13 @@ function init() {
                 const exitCode = cmd.processState.exitCode();
                 if (exitCode === 0) {
                     log.sendSuccess(`✓ URL opened successfully`);
+                } else if (exitCode === 1) {
+                    log.sendError(`Seanime denied the command - check manifest permissions`);
                 } else {
                     log.sendError(`Failed to open URL (exit code: ${exitCode})`);
                 }
             } catch (e: any) {
-                log.sendError(`Failed to open URL: ${e?.message || e}`);
+                log.sendError(`Exception during open: ${e?.message || String(e)}`);
             }
         };
         
@@ -95,9 +99,9 @@ function init() {
             log.send(`idMal field: ${media.idMal}`);
             
             try {
-                // First check if media has idMal field directly
                 let malId: string | null = null;
                 
+                // First check if media has idMal field directly
                 if (media.idMal) {
                     malId = String(media.idMal);
                     log.sendSuccess(`Found MAL ID in media.idMal: ${malId}`);
@@ -144,7 +148,7 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // v1.21.2: Use proper Seanime system command
+                    // v1.21.3: Use SYNC command API
                     openMalLink(malUrl);
                     ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                 } else {
@@ -152,8 +156,8 @@ function init() {
                     ctx.toast.error(`No MAL link found for ${media.title.userPreferred}`);
                 }
             } catch (error: any) {
-                log.sendError(`Exception: ${error?.message || error}`);
-                ctx.toast.error(`Error: ${error?.message || error}`);
+                log.sendError(`Exception: ${error?.message || String(error)}`);
+                ctx.toast.error(`Error: ${error?.message || String(error)}`);
             }
             
             // Show logs after a short delay
@@ -236,6 +240,6 @@ function init() {
             return tray.stack([header, terminal], { gap: 2, style: { padding: "12px" }});
         });
         
-        log.sendInfo("MAL Button v1.21.2 initialized");
+        log.sendInfo("MAL Button v1.21.3 initialized");
     });
 }
