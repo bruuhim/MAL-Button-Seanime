@@ -1,16 +1,21 @@
 # Changelog
 
+## [1.21.0] - 2026-01-05
+
+### Fixed
+- **Critical fix**: Use proper Seanime system API `$os.cmd("open", url)` instead of non-existent `ctx.openUrl()`
+  - Added `system` scope to plugin permissions
+  - Added `open` command to commandScopes for URL opening
+  - Fully compliant with Seanime plugin documentation
+  - Properly waits for command execution before returning
+
 ## [1.20.0] - 2026-01-05
 
 ### Fixed
-- **Critical fix**: Replaced `$osExtra.asyncCmd()` with `ctx.openUrl()` 
-  - `$osExtra` was not available in the plugin context
-  - Now using proper Seanime API for opening URLs
+- **Attempted fix**: Replaced `$osExtra.asyncCmd()` with `ctx.openUrl()` 
+  - `$osExtra` was not available in plugin context
+  - `ctx.openUrl()` does not exist in Seanime API
   - Removed unnecessary commandScopes from manifest
-
-### Improved
-- Cleaner error handling
-- Proper use of Seanime plugin APIs
 
 ## [1.19.1] - 2026-01-05
 
