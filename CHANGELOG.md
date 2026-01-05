@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.1] - 2026-01-05
+
+### Fixed
+- **Hotfix**: Removed stray escaped newline character (`\n`) that broke TypeScript compilation
+  - Line 71 had literal `\n` instead of actual newline
+  - Now compiles cleanly
+
 ## [1.21.0] - 2026-01-05
 
 ### Fixed
