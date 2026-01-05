@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.1] - 2026-01-05
+
+### Fixed
+- **Hotfix**: Resolved TypeScript compilation error caused by mismatched quotes in `MAL.ts`
+  - Fixed error: `[Expected ")" but found "Anime"]`
+
 ## [1.19.0] - 2026-01-05
 
 ### Fixed
