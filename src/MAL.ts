@@ -60,7 +60,7 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // v1.21.0: Use proper Seanime system command API
+        // v1.21.2: Use proper Seanime system command API with authorization
         const openMalLink = (url: string) => {
             try {
                 log.send(`Opening link via system open command: ${url}`);
@@ -144,7 +144,7 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // v1.21.0: Use proper Seanime system command
+                    // v1.21.2: Use proper Seanime system command
                     openMalLink(malUrl);
                     ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                 } else {
@@ -236,6 +236,6 @@ function init() {
             return tray.stack([header, terminal], { gap: 2, style: { padding: "12px" }});
         });
         
-        log.sendInfo("MAL Button v1.21.0 initialized");
+        log.sendInfo("MAL Button v1.21.2 initialized");
     });
 }
