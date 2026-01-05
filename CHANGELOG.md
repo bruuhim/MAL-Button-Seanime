@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.21.4] - 2026-01-05
+
+### Fixed
+- **Critical fix**: Changed validator from strict regex to `$ARGS` for open command
+  - Seanime's validator system was rejecting the regex `^https?://.*$`
+  - Now uses `$ARGS` validator (like echo command) which accepts any argument
+  - This matches the official Seanime documentation example for flexible argument handling
+  - Problem was the validator was TOO STRICT for the URL regex pattern
+
 ## [1.21.3] - 2026-01-05
 
 ### Fixed
