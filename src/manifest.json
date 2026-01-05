@@ -1,11 +1,11 @@
 {
     "id": "mal-button",
     "name": "MAL Button",
-    "version": "1.21.5",
+    "version": "1.22.0",
     "manifestURI": "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/manifest.json",
     "language": "typescript",
     "type": "plugin",
-    "description": "Adds a button to open the anime on MyAnimeList directly from Seanime.",
+    "description": "Adds a button to get the MyAnimeList link for any anime in Seanime.",
     "author": "bruuhim",
     "icon": "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/icon.png",
     "website": "https://github.com/bruuhim/MAL-Button-Seanime",
@@ -13,15 +13,7 @@
     "payloadURI": "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/MAL.ts",
     "plugin": {
         "version": "1",
-        "permissions": {
-            "scopes": ["system"],
-            "commandScopes": [
-                {
-                    "command": "start",
-                    "args": [{ "validator": "$ARGS" }]
-                }
-            ]
-        }
+        "permissions": {}
     },
     "isDevelopment": false
 }
