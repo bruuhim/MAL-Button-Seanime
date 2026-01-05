@@ -60,29 +60,15 @@ function init() {
         
         const showLogsState = ctx.state<boolean>(false);
         
-        // v1.19.0: Move command execution to main scope (outside onClick)
-        // This ensures $osExtra is available in the correct context
+        // v1.20.0: Use Seanime's built-in open function from ctx
         const openMalLink = (url: string) => {
             try {
-                log.send(`Executing async command: open ${url}`);
-                const cmd = $osExtra.asyncCmd("open", url);
-                cmd.run((data, err, exitCode, signal) => {
-                    if (data) {
-                        log.send(`Stdout: ${$toString(data)}`);
-                    }
-                    if (err) {
-                        log.sendError(`Stderr: ${$toString(err)}`);
-                    }
-                    if (exitCode !== undefined) {
-                        if (exitCode === 0) {
-                            log.sendSuccess(`✓ Command executed successfully (exit code: ${exitCode})`);
-                        } else {
-                            log.sendError(`Command failed with exit code: ${exitCode}, signal: ${signal}`);
-                        }
-                    }
-                });
+                log.send(`Opening link: ${url}`);
+                // Use ctx.openUrl which is the proper Seanime API for opening URLs
+                ctx.openUrl(url);
+                log.sendSuccess(`✓ URL opened successfully`);
             } catch (e: any) {
-                log.sendError(`Failed to execute open command: ${e?.message || e}`);
+                log.sendError(`Failed to open URL: ${e?.message || e}`);
             }
         };
         
@@ -96,7 +82,6 @@ function init() {
         malButton.onClick(async (event: any) => {
             const media = event.media;
             
-            // v1.19.1: Fixed syntax error here
             log.sendInfo("=== MAL Button Click ===");
             log.send(`Anime: ${media.title.userPreferred}`);
             log.send(`Media ID: ${media.id}`);
@@ -152,8 +137,8 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     log.send(`MAL URL: ${malUrl}`);
                     
-                    // v1.19.0: Call the openMalLink function from main scope
-                    log.send(`Opening link via $osExtra.asyncCmd...`);
+                    // v1.20.0: Use proper Seanime API
+                    log.send(`Opening link via ctx.openUrl...`);
                     openMalLink(malUrl);
                     ctx.toast.success(`Opening MAL: ${media.title.userPreferred}`);
                 } else {
@@ -245,6 +230,6 @@ function init() {
             return tray.stack([header, terminal], { gap: 2, style: { padding: "12px" }});
         });
         
-        log.sendInfo("MAL Button v1.19.1 initialized");
+        log.sendInfo("MAL Button v1.20.0 initialized");
     });
 }
