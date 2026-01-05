@@ -1,11 +1,21 @@
 # Changelog
 
-## [1.21.2] - 2026-01-05
+## [1.21.3] - 2026-01-05
 
 ### Fixed
-- **Critical fix**: Added `open` command to the `allow` list in manifest permissions
-  - Seanime was blocking the command due to missing authorization
-  - Now properly pre-authorized in manifest
+- **Critical fix**: Reverted to sync `$os.cmd()` API per official Seanime documentation
+  - v1.21.2 approach (`allow` list) was incorrect
+  - Seanime docs specify `commandScopes` ONLY - no `allow` object for commands
+  - Changed from async to sync command execution (matches official examples)
+  - Added stricter URL regex validation in commandScopes
+  - Better error handling for exit codes (distinguish Seanime denial from OS errors)
+
+## [1.21.2] - 2026-01-05
+
+### Attempted Fix (Incorrect)
+- Tried adding `open` command to `allow` list in manifest
+- This approach was wrong per Seanime documentation
+- Only `commandScopes` should be used for command authorization
 
 ## [1.21.1] - 2026-01-05
 
