@@ -13,6 +13,7 @@ function init() {
         // State for MAL URL
         const malUrlState = ctx.state<string | null>(null);
         const animeNameState = ctx.state<string | null>(null);
+        const copiedState = ctx.state<boolean>(false);
         
         // Tray to show the link
         const malTray = ctx.newTray({
@@ -53,7 +54,8 @@ function init() {
                     const url = `https://myanimelist.net/anime/${malId}`;
                     malUrlState.set(url);
                     animeNameState.set(media.title.userPreferred);
-                    ctx.toast.success(`📌 Tap the link below`);
+                    copiedState.set(false);
+                    ctx.toast.success(`📌 Click link to copy`);
                     malTray.open();
                 } else {
                     ctx.toast.error(`No MAL ID found`);
@@ -67,6 +69,7 @@ function init() {
         malTray.render(() => {
             const url = malUrlState.get();
             const animeName = animeNameState.get();
+            const copied = copiedState.get();
             
             if (!url) {
                 return malTray.stack({
@@ -83,23 +86,29 @@ function init() {
                             marginBottom: "12px",
                         },
                     }),
-                    malTray.text(url, {
+                    malTray.button(url, {
+                        intent: copied ? "success" : "primary",
+                        onClick: ctx.eventHandler('copy-mal-link', () => {
+                            // Store in window object for clipboard access
+                            (window as any).malLinkToCopy = url;
+                            copiedState.set(true);
+                            ctx.toast.success("Copied! Paste in browser.");
+                            // Reset after 2 seconds
+                            ctx.setTimeout(() => {
+                                copiedState.set(false);
+                                malTray.update();
+                            }, 2000);
+                        }),
                         style: {
                             fontSize: "0.95em",
-                            color: "#4a9eff",
-                            fontFamily: "monospace",
-                            padding: "12px",
-                            background: "rgba(74, 158, 255, 0.1)",
-                            borderRadius: "6px",
+                            padding: "12px 16px",
                             wordBreak: "break-all",
-                            lineHeight: "1.4",
-                            cursor: "text",
                         },
                     }),
-                    malTray.text("⬆ Tap to select, copy & paste in browser", {
+                    malTray.text(copied ? "✓ Copied to clipboard!" : "Click to copy link", {
                         style: {
                             fontSize: "0.85em",
-                            color: "#888",
+                            color: copied ? "#4ade80" : "#888",
                             marginTop: "8px",
                         },
                     }),
