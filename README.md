@@ -6,7 +6,7 @@
   <p>Premium one-click MAL links directly from anime details page</p>
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.2-blue.svg)](CHANGELOG.md)
 [![Seanime](https://img.shields.io/badge/seanime-2.7.0+-purple.svg)](https://github.com/5rahim/seanime)
 </div>
 
@@ -99,17 +99,23 @@ src/
 
 ---
 
-## 📝 Changelog
+## 🖼️ Previews
 
-### v2.0.0 (Premium Overhaul)
-
-🚀 **Major UI Refresh**: Completely redesigned tray with modern aesthetics.  
-🛠️ **Code Refactor**: Improved modularity and state management.  
-🎨 **Enhanced UX**: Smooth animations and clearer action buttons.  
-
-See [CHANGELOG.md](CHANGELOG.md) for full history.
+<div align="center">
+  <img src="assets/preview01.png" alt="MAL Button Preview 1" width="400" />
+  <img src="assets/preview02.png" alt="MAL Button Preview 2" width="400" />
+</div>
 
 ---
+
+## 📝 Changelog
+
+### v2.0.2 (Final Polish)
+
+🚀 **Final Release**: Added project previews and performed final code polish.  
+🛠️ **Documentation**: Integrated asset previews into the repository.  
+
+See [CHANGELOG.md](CHANGELOG.md) for full history.
 
 ## 🔧 Development
 
