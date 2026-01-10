@@ -13,7 +13,9 @@
   "payloadURI": "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/MAL.ts",
   "plugin": {
     "version": "1",
-    "permissions": {}
+    "permissions": {
+      "scopes": []
+    }
   },
-  "isDevelopment": false
+  "isDevelopment": true
 }
