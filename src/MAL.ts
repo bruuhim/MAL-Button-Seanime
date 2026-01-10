@@ -5,7 +5,7 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button to anime details page
  * 
- * @version 1.1.2
+ * @version 1.1.3
  * @author bruuhim
  */
 
@@ -99,6 +99,12 @@ function init() {
                     // Try direct opening first with various likely Seanime APIs
                     try {
                         // @ts-ignore
+                        if (typeof ctx.openExternal === 'function') {
+                            // @ts-ignore
+                            ctx.openExternal(malUrl);
+                            return;
+                        }
+                        // @ts-ignore
                         if (typeof ctx.openBrowser === 'function') {
                             // @ts-ignore
                             ctx.openBrowser(malUrl);
@@ -114,6 +120,12 @@ function init() {
                         if (typeof ctx.app?.openBrowser === 'function') {
                             // @ts-ignore
                             ctx.app.openBrowser(malUrl);
+                            return;
+                        }
+                        // @ts-ignore
+                        if (typeof ctx.app?.openExternal === 'function') {
+                            // @ts-ignore
+                            ctx.app.openExternal(malUrl);
                             return;
                         }
                     } catch (e) { }
