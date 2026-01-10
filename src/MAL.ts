@@ -5,7 +5,7 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button to anime details page
  * 
- * @version 1.1.0
+ * @version 1.1.1
  * @author bruuhim
  */
 
@@ -63,6 +63,26 @@ function init() {
             return null;
         }
 
+        // Initialize tray as a fallback or for the "anchor" pattern if direct opening isn't possible
+        const malTray = ctx.newTray({
+            tooltipText: "MyAnimeList",
+            iconUrl: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/icon.png",
+            withContent: true
+        });
+
+        const malUrlState = ctx.state<string | null>(null);
+
+        malTray.render(() => {
+            const url = malUrlState.get();
+            if (!url) return malTray.text("Loading...");
+            return malTray.stack([
+                malTray.anchor("Open MyAnimeList", {
+                    href: url,
+                    className: "bg-blue-600 p-2 rounded text-center text-sm font-bold no-underline text-white w-full block"
+                })
+            ], { style: { padding: "16px" } });
+        });
+
         /**
          * Handle button click - fetch MAL ID and open link
          */
@@ -74,7 +94,27 @@ function init() {
 
                 if (malId) {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
-                    window.open(malUrl, "_blank");
+                    malUrlState.set(malUrl);
+
+                    // Try direct opening first (if ctx.openURL exists in this environment)
+                    try {
+                        // @ts-ignore
+                        if (typeof ctx.openURL === 'function') {
+                            // @ts-ignore
+                            ctx.openURL(malUrl);
+                            return;
+                        }
+                        // @ts-ignore
+                        if (typeof ctx.app?.openBrowser === 'function') {
+                            // @ts-ignore
+                            ctx.app.openBrowser(malUrl);
+                            return;
+                        }
+                    } catch (e) { }
+
+                    // If direct opening fails or isn't available, use the "Browse forums" pattern from provider.ts
+                    // which uses tray.anchor. We open the tray so the user can click the anchor.
+                    malTray.open();
                 } else {
                     ctx.toast.error("❌ No MAL ID found for this anime");
                 }
