@@ -5,7 +5,7 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button to anime details page
  * 
- * @version 1.1.5
+ * @version 1.1.6
  * @author bruuhim
  */
 
@@ -18,7 +18,7 @@ interface MALState {
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] Plugin initializing... v1.1.5");
+        console.log("[MAL Button] Plugin initializing... v1.1.6");
         console.log("[MAL Button] ctx keys:", Object.keys(ctx || {}));
         if (ctx?.screen) console.log("[MAL Button] ctx.screen keys:", Object.keys(ctx.screen));
         if (ctx?.action) console.log("[MAL Button] ctx.action keys:", Object.keys(ctx.action));
@@ -105,36 +105,21 @@ function init() {
 
                     console.log(`[MAL Button] Attempting to open URL: ${malUrl}`);
 
-                    // Try direct opening first with various likely Seanime APIs
+                    // v1.1.6 attempts using discovered ctx keys
                     try {
-                        console.log("[MAL Button] Checking for openExternal...");
-                        if (typeof ctx.openExternal === 'function') {
-                            console.log("[MAL Button] Using ctx.openExternal");
-                            ctx.openExternal(malUrl);
+                        // Try 1: ctx.externalPlayerLink.open
+                        console.log("[MAL Button] Attempt 1: Checking for ctx.externalPlayerLink.open...");
+                        if (typeof ctx.externalPlayerLink?.open === 'function') {
+                            console.log("[MAL Button] Using ctx.externalPlayerLink.open");
+                            ctx.externalPlayerLink.open(malUrl);
                             return;
                         }
-                        console.log("[MAL Button] Checking for openBrowser...");
-                        if (typeof ctx.openBrowser === 'function') {
-                            console.log("[MAL Button] Using ctx.openBrowser");
-                            ctx.openBrowser(malUrl);
-                            return;
-                        }
-                        console.log("[MAL Button] Checking for openURL...");
-                        if (typeof ctx.openURL === 'function') {
-                            console.log("[MAL Button] Using ctx.openURL");
-                            ctx.openURL(malUrl);
-                            return;
-                        }
-                        console.log("[MAL Button] Checking for ctx.app.openBrowser...");
-                        if (typeof ctx.app?.openBrowser === 'function') {
-                            console.log("[MAL Button] Using ctx.app.openBrowser");
-                            ctx.app.openBrowser(malUrl);
-                            return;
-                        }
-                        console.log("[MAL Button] Checking for ctx.app.openExternal...");
-                        if (typeof ctx.app?.openExternal === 'function') {
-                            console.log("[MAL Button] Using ctx.app.openExternal");
-                            ctx.app.openExternal(malUrl);
+
+                        // Try 2: ctx.screen.navigateTo (might only work for internal links, but worth a shot)
+                        console.log("[MAL Button] Attempt 2: Checking for ctx.screen.navigateTo...");
+                        if (typeof ctx.screen?.navigateTo === 'function') {
+                            console.log("[MAL Button] Using ctx.screen.navigateTo");
+                            ctx.screen.navigateTo(malUrl);
                             return;
                         }
                     } catch (e) {
