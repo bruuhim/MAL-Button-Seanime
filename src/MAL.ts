@@ -5,7 +5,7 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button to anime details page
  * 
- * @version 1.1.3
+ * @version 1.1.4
  * @author bruuhim
  */
 
@@ -17,7 +17,11 @@ interface MALState {
 }
 
 function init() {
-    $ui.register((ctx) => {
+    $ui.register((ctx: any) => {
+        console.log("[MAL Button] Plugin initializing... v1.1.4");
+        console.log("[MAL Button] ctx keys:", Object.keys(ctx || {}));
+        if (ctx?.app) console.log("[MAL Button] ctx.app keys:", Object.keys(ctx.app));
+
         // Create MAL button for anime page
         const malButton = ctx.action.newAnimePageButton({
             label: "MAL",
@@ -96,42 +100,46 @@ function init() {
                     const malUrl = `https://myanimelist.net/anime/${malId}`;
                     malUrlState.set(malUrl);
 
+                    console.log(`[MAL Button] Attempting to open URL: ${malUrl}`);
+
                     // Try direct opening first with various likely Seanime APIs
                     try {
-                        // @ts-ignore
+                        console.log("[MAL Button] Checking for openExternal...");
                         if (typeof ctx.openExternal === 'function') {
-                            // @ts-ignore
+                            console.log("[MAL Button] Using ctx.openExternal");
                             ctx.openExternal(malUrl);
                             return;
                         }
-                        // @ts-ignore
+                        console.log("[MAL Button] Checking for openBrowser...");
                         if (typeof ctx.openBrowser === 'function') {
-                            // @ts-ignore
+                            console.log("[MAL Button] Using ctx.openBrowser");
                             ctx.openBrowser(malUrl);
                             return;
                         }
-                        // @ts-ignore
+                        console.log("[MAL Button] Checking for openURL...");
                         if (typeof ctx.openURL === 'function') {
-                            // @ts-ignore
+                            console.log("[MAL Button] Using ctx.openURL");
                             ctx.openURL(malUrl);
                             return;
                         }
-                        // @ts-ignore
+                        console.log("[MAL Button] Checking for ctx.app.openBrowser...");
                         if (typeof ctx.app?.openBrowser === 'function') {
-                            // @ts-ignore
+                            console.log("[MAL Button] Using ctx.app.openBrowser");
                             ctx.app.openBrowser(malUrl);
                             return;
                         }
-                        // @ts-ignore
+                        console.log("[MAL Button] Checking for ctx.app.openExternal...");
                         if (typeof ctx.app?.openExternal === 'function') {
-                            // @ts-ignore
+                            console.log("[MAL Button] Using ctx.app.openExternal");
                             ctx.app.openExternal(malUrl);
                             return;
                         }
-                    } catch (e) { }
+                    } catch (e) {
+                        console.error("[MAL Button] Error during direct opening attempt:", e);
+                    }
 
-                    // If direct opening fails or isn't available, use the "Browse forums" pattern from provider.ts
-                    // which uses tray.anchor. We open the tray so the user can click the anchor.
+                    console.log("[MAL Button] No direct opening API found or worked. Falling back to tray.");
+                    // If direct opening fails, use the tray as fallback
                     malTray.open();
                 } else {
                     ctx.toast.error("❌ No MAL ID found for this anime");
