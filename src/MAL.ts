@@ -3,154 +3,123 @@
 
 /**
  * MAL Button Plugin for Seanime
- * Adds a MyAnimeList link button to anime details page
+ * Adds a MyAnimeList link button to anime details page with a polished tray UI
  * 
- * @version 1.1.8
+ * @version 2.0.0
  * @author bruuhim
  */
 
-interface MALState {
-    url: string | null;
-    animeName: string | null;
-    isLoading: boolean;
-    error: string | null;
-}
-
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] Plugin initializing... v1.1.8");
-        console.log("[MAL Button] ctx keys:", Object.keys(ctx || {}));
-        if (ctx?.screen) console.log("[MAL Button] ctx.screen keys:", Object.keys(ctx.screen));
-        if (ctx?.action) console.log("[MAL Button] ctx.action keys:", Object.keys(ctx.action));
-        if (ctx?.dom) console.log("[MAL Button] ctx.dom keys:", Object.keys(ctx.dom));
-        if (ctx?.externalPlayerLink) console.log("[MAL Button] ctx.externalPlayerLink keys:", Object.keys(ctx.externalPlayerLink));
+        console.log("[MAL Button] v2.0.0 Initializing...");
 
-        // Create MAL button for anime page
+        // --- State Management ---
+        const malUrlState = ctx.state<string | null>(null);
+
+        // --- UI Components ---
+
+        // Create the Tray
+        const malTray = ctx.newTray({
+            tooltipText: "MyAnimeList Quick Access",
+            iconUrl: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/icon.png",
+            withContent: true
+        });
+
+        // Register the Button on Anime Page
         const malButton = ctx.action.newAnimePageButton({
             label: "MAL",
-            icon: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/icon.png", // Added icon for consistency if supported, though original didn't have it in props
+            icon: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/icon.png",
         });
         malButton.mount();
 
+        // --- Logic ---
+
         /**
-         * Fetch MAL ID from various sources
-         * Priority: media.idMal > externalLinks > manual search
+         * Robust MAL ID retrieval
          */
         async function getMalId(media: any): Promise<string | null> {
-            // First check: direct MAL ID
-            if (media.idMal) {
-                return String(media.idMal);
-            }
+            // 1. Direct check
+            if (media.idMal) return String(media.idMal);
 
-            // Second check: fetch anime entry for external links
+            // 2. Deep check via API
             try {
                 const animeEntry = await ctx.anime.getAnimeEntry(media.id);
+                const fullMedia = animeEntry?.media;
+                if (!fullMedia) return null;
 
-                if (animeEntry?.media) {
-                    const fullMedia = animeEntry.media;
+                if (fullMedia.idMal) return String(fullMedia.idMal);
 
-                    // Check direct ID
-                    if (fullMedia.idMal) {
-                        return String(fullMedia.idMal);
-                    }
-
-                    // Check external links
-                    if (fullMedia.externalLinks && Array.isArray(fullMedia.externalLinks)) {
-                        for (const link of fullMedia.externalLinks) {
-                            if (link.site && link.site.toLowerCase() === "myanimelist" && link.id) {
-                                return link.id;
-                            }
-                        }
-                    }
+                // Check external links array
+                if (fullMedia.externalLinks && Array.isArray(fullMedia.externalLinks)) {
+                    const malLink = fullMedia.externalLinks.find((l: any) =>
+                        l.site?.toLowerCase() === "myanimelist"
+                    );
+                    if (malLink?.id) return String(malLink.id);
                 }
-            } catch (apiError: any) {
-                console.warn(`Failed to fetch anime entry: ${apiError?.message || apiError}`);
+            } catch (err) {
+                console.error("[MAL Button] Failed to fetch deep info:", err);
             }
 
             return null;
         }
 
-        // Initialize tray as a fallback or for the "anchor" pattern if direct opening isn't possible
-        const malTray = ctx.newTray({
-            tooltipText: "MyAnimeList",
-            iconUrl: "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/icon.png",
-            withContent: true
-        });
-
-        const malUrlState = ctx.state<string | null>(null);
+        // --- Renderers ---
 
         malTray.render(() => {
             const url = malUrlState.get();
-            if (!url) return malTray.text("Loading...");
+
+            if (!url) {
+                return malTray.stack([
+                    malTray.text("Fetching MAL link...", { className: "text-zinc-400 animate-pulse text-sm" })
+                ], { style: { padding: "20px", display: "flex", justifyContent: "center" } });
+            }
+
             return malTray.stack([
+                // Header-like text
+                malTray.text("MyAnimeList", { className: "text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2" }),
+
+                // The Main Button
                 malTray.anchor("Open MyAnimeList", {
                     href: url,
-                    className: "bg-blue-600 p-2 rounded text-center text-sm font-bold no-underline text-white w-full block"
-                })
-            ], { style: { padding: "16px" } });
+                    className: "bg-blue-600 hover:bg-blue-500 active:scale-[0.98] transition-all p-3 rounded-lg text-center text-sm font-bold no-underline text-white w-full block shadow-lg shadow-blue-900/20"
+                }),
+
+                // Extra info/footer
+                malTray.text("External Link", { className: "text-[10px] text-zinc-600 mt-2 text-center" })
+            ], {
+                style: {
+                    padding: "16px",
+                    background: "linear-gradient(to bottom, #1a1a1a, #121212)",
+                    borderRadius: "12px",
+                    minWidth: "200px"
+                }
+            });
         });
 
-        /**
-         * Handle button click - fetch MAL ID and open link
-         */
+        // --- Event Handlers ---
+
         malButton.onClick(async (event: any) => {
             const media = event.media;
+            if (!media) return;
+
+            // Open tray immediately for visual feedback
+            malUrlState.set(null); // Reset to show loading
+            malTray.open();
 
             try {
                 const malId = await getMalId(media);
-
                 if (malId) {
-                    const malUrl = `https://myanimelist.net/anime/${malId}`;
-                    malUrlState.set(malUrl);
-
-                    console.log(`[MAL Button] Attempting to open URL: ${malUrl}`);
-
-                    // v1.1.7: Use $os.cmd to open the browser directly
-                    try {
-                        // @ts-ignore
-                        if (typeof $os?.cmd === 'function') {
-                            // @ts-ignore
-                            console.log(`[MAL Button] Using $os.cmd on platform: ${$os.platform}`);
-                            let command = "";
-                            let args: string[] = [];
-
-                            // @ts-ignore
-                            if ($os.platform === 'windows') {
-                                command = "cmd";
-                                args = ["/c", "start", malUrl];
-                                // @ts-ignore
-                            } else if ($os.platform === 'darwin') {
-                                command = "open";
-                                args = [malUrl];
-                            } else {
-                                // Linux / Unix
-                                command = "xdg-open";
-                                args = [malUrl];
-                            }
-
-                            if (command) {
-                                // @ts-ignore
-                                $os.cmd(command, ...args).run();
-                                console.log(`[MAL Button] Executed: ${command} ${args.join(' ')}`);
-                                return;
-                            }
-                        } else {
-                            console.log("[MAL Button] $os.cmd not available (v1.1.7)");
-                        }
-                    } catch (e) {
-                        console.error("[MAL Button] Error during $os.cmd attempt:", e);
-                    }
-
-                    console.log("[MAL Button] No direct opening method worked. Falling back to tray.");
-                    // If direct opening fails, use the tray as fallback
-                    malTray.open();
+                    const url = `https://myanimelist.net/anime/${malId}`;
+                    malUrlState.set(url);
                 } else {
                     ctx.toast.error("❌ No MAL ID found for this anime");
+                    malTray.close();
                 }
             } catch (error: any) {
-                const errorMsg = `Error: ${error?.message || error}`;
-                ctx.toast.error(errorMsg);
+                ctx.toast.error("An error occurred while fetching MAL link");
+                malTray.close();
             }
         });
+
     });
 }
