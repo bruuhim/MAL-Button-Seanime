@@ -1,147 +1,108 @@
-/// <reference path="./plugin.d.ts" />
 /// <reference path="./app.d.ts" />
+/// <reference path="./core.d.ts" />
+/// <reference path="./plugin.d.ts" />
+/// <reference path="./system.d.ts" />
 
 /**
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button (blue pill) to anime details page
- * 
+ *
  * v3.3.0:
  * - Added polling to wait for container (fixes "slow to show")
  * - Enhanced deduplication logic
- * 
+ *
  * @version 3.3.0
  * @author bruuhim
  */
 
 function init() {
-    $ui.register((ctx: any) => {
-        console.log("[MAL Button] v3.3.0 Initializing...");
+	$ui.register((ctx) => {
+		const reloadCd = ctx.state<number>(2_000); // initially reload after 2s if dom is not ready
 
-        // --- Constants ---
-        const BUTTON_ATTR = "data-mal-button";
-        let lastInjectedId: number | null = null;
+		function isCustomSource(mediaId?: number) {
+			return (mediaId ?? 0) >= 2 ** 31;
+		}
 
-        /**
-         * Get MAL ID from media object
-         */
-        const mediaToMalId = (media: any): string | null => {
-            return media?.idMal ? String(media.idMal) : null;
-        };
+		ctx.screen.onNavigate(async ({ pathname, searchParams }) => {
+			// Not in anime/manga page
+			if (!["/entry", "/manga/entry"].includes(pathname)) return;
+			const id = Number(searchParams.id);
 
-        /**
-         * Wait for the container element to appear
-         */
-        const waitForContainer = async (retries = 10, interval = 500): Promise<any> => {
-            for (let i = 0; i < retries; i++) {
-                const container = await ctx.dom.queryOne("[data-media-page-header-entry-details-date-container]");
-                if (container) return container;
-                await new Promise(resolve => setTimeout(resolve, interval));
-            }
-            return null;
-        };
+			// Is a custom source
+			if (isCustomSource(Number(searchParams.id))) return;
 
-        /**
-         * Inject the MAL button (blue pill) into the header
-         */
-        const injectButton = async (animeId: number) => {
-            try {
-                // Wait for container - wait up to 5 seconds
-                const container = await waitForContainer();
+			const type: $app.AL_MediaType = pathname === "/entry" ? "ANIME" : "MANGA";
+			const getEntry =
+				type === "ANIME" ? ctx.anime.getAnimeEntry : ctx.manga.getMangaEntry;
+			const entry = await getEntry(id);
+			const media = entry.media;
 
-                if (!container) {
-                    console.log("[MAL Button] Container not found after waiting.");
-                    return;
-                }
+			const $CONTAINER = `[data-${type.toLowerCase()}-meta-section-buttons-container]`;
+			const container = await ctx.dom.queryOne($CONTAINER, {
+				withInnerHTML: true,
+				identifyChildren: true,
+			});
 
-                // Remove ALL existing MAL buttons first (in case of duplicates)
-                // We assume query returns an array if there are multiple matches? 
-                // ctx.dom API usually has query and queryOne. Let's stick to cleaning up what we find.
-                // We'll loop until no more buttons are found to be safe.
-                while (true) {
-                    const existing = await container.queryOne(`[${BUTTON_ATTR}]`);
-                    if (existing) {
-                        await existing.remove();
-                        console.log("[MAL Button] Removed existing button.");
-                    } else {
-                        break;
-                    }
-                }
+			// DOM is not ready if container is unavailable in anime/manga page
+			if (!container) {
+				ctx.setTimeout(() => {
+					// Load the current screen after x seconds
+					ctx.screen.loadCurrent();
+					// increment load times by 2s everytime it fails to load
+					reloadCd.set(reloadCd.get() + 2_000);
+				}, reloadCd.get());
+				const duration = reloadCd.get() / 1000;
 
-                // Fetch anime data
-                const animeEntry = await ctx.anime.getAnimeEntry(animeId);
-                const malId = mediaToMalId(animeEntry?.media);
+				return console.log(
+					`Could not retrieve ${$CONTAINER}, reloading in ${duration}s`
+				);
+			}
 
-                if (!malId) {
-                    console.log("[MAL Button] No MAL ID found for anime:", animeId);
-                    return;
-                }
+			try {
+				const oldEl = await container.query(`[data-custom-idmal]`);
+				// Remove all instances of old buttons
+				if (oldEl.length) oldEl.forEach((el) => el.remove());
+				if (!media) {
+					return console.log(`Media object for ${id} could not be found`);
+				}
 
-                // Create the anchor element (blue pill)
-                const anchor = await ctx.dom.createElement("a");
-                anchor.setAttribute(BUTTON_ATTR, malId);
-                anchor.setAttribute("href", `https://myanimelist.net/anime/${malId}`);
-                anchor.setAttribute("target", "_blank");
-                anchor.setAttribute("rel", "noopener noreferrer");
-                anchor.setInnerHTML("MAL");
+				if (!media.idMal) {
+					return console.log(`Anilist media ${id} has no equivalent MAL entry`);
+				}
 
-                // Apply styles
-                anchor.setStyle("background-color", "#2e51a2");
-                anchor.setStyle("padding", "0 10px");
-                anchor.setStyle("border-radius", "9999px");
-                anchor.setStyle("color", "#fff");
-                anchor.setStyle("font-weight", "600");
-                anchor.setStyle("font-size", "0.875rem");
-                anchor.setStyle("text-decoration", "none");
-                anchor.setStyle("display", "inline-flex");
-                anchor.setStyle("align-items", "center");
-                anchor.setStyle("cursor", "pointer");
-                anchor.setStyle("margin-left", "0.5rem"); // Add some spacing
+				const btnAL = await container.queryOne("a");
+				// This usually does not happen but just catch just in case
+				if (!btnAL) return console.log(`Error: Anilist button was not found.`);
 
-                // Final check before appending
-                const doubleCheck = await container.queryOne(`[${BUTTON_ATTR}]`);
-                if (!doubleCheck) {
-                    container.append(anchor);
-                    lastInjectedId = animeId;
-                    console.log("[MAL Button] Blue pill injected for MAL ID:", malId);
-                }
+				const btnMAL = await ctx.dom.createElement("a");
+				for (const [prop, val] of Object.entries({
+					href: `https://myanimelist.net/${type.toLowerCase()}/${media.idMal}`,
+					target: "_blank",
+					"data-custom-idmal": `${media.idMal}`,
+				}))
+					btnMAL.setAttribute(prop, val);
 
-            } catch (err) {
-                console.error("[MAL Button] Injection error:", err);
-            }
-        };
+				const icnMAL = await ctx.dom.createElement("svg");
+				for (const [prop, val] of Object.entries({
+					// stroke: "currentcolor", // makes the letters too thick
+					fill: "currentcolor",
+					viewBox: "0 0 24 24",
+					xmlns: "http://www.w3.org/2000/svg",
+				}))
+					icnMAL.setAttribute(prop, val);
+				icnMAL.setStyle("width", "2rem");
 
-        // --- Navigation Handler ---
-        if (ctx.screen && ctx.screen.onNavigate) {
-            ctx.screen.onNavigate(async (nav: any) => {
-                if (nav?.pathname !== "/entry" || !nav?.searchParams?.id) return;
+				icnMAL.setInnerHTML(
+					`<svg stroke="currentcolor" fill="currentcolor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8.273 7.247v8.423l-2.103-.003v-5.216l-2.03 2.404-1.989-2.458-.02 5.285H.001L0 7.247h2.203l1.865 2.545 2.015-2.546zm8.628 2.069.025 6.335h-2.365l-.008-2.871h-2.8c.07.499.21 1.266.417 1.779.155.381.298.751.583 1.128l-1.705 1.125c-.349-.636-.622-1.337-.878-2.082a9.3 9.3 0 0 1-.507-2.179c-.085-.75-.097-1.471.107-2.212a3.9 3.9 0 0 1 1.161-1.866c.313-.293.749-.5 1.1-.687s.743-.264 1.107-.359a7.4 7.4 0 0 1 1.191-.183c.398-.034 1.107-.066 2.39-.028l.545 1.749H14.51c-.593.008-.878.001-1.341.209a2.24 2.24 0 0 0-1.278 1.92l2.663.033.038-1.81zm3.992-2.099v6.627l3.107.032-.43 1.775h-4.807V7.187z"/>
+                    </svg>`
+				);
 
-                const mediaId = parseInt(nav.searchParams.id);
-                if (isNaN(mediaId)) return;
-
-                console.log("[MAL Button] Navigation to anime page, ID:", mediaId);
-                // Reset lastInjectedId to ensure we force a check even if revisiting same page
-                lastInjectedId = null;
-                await injectButton(mediaId);
-            });
-        }
-
-        // --- DOM Observer ---
-        if (ctx.dom && ctx.dom.observe) {
-            ctx.dom.observe("[data-media-page-header-entry-details-date-container]", async () => {
-                if (lastInjectedId) {
-                    // Just a quick check to see if our button is gone
-                    const container = await ctx.dom.queryOne("[data-media-page-header-entry-details-date-container]");
-                    if (container) {
-                        const existing = await container.queryOne(`[${BUTTON_ATTR}]`);
-                        if (!existing) {
-                            console.log("[MAL Button] Button missing, re-injecting...");
-                            await injectButton(lastInjectedId);
-                        }
-                    }
-                }
-            });
-        }
-    });
+				btnMAL.append(icnMAL);
+				btnAL.after(btnMAL);
+			} catch (error) {
+				console.log(error);
+			}
+		});
+	});
 }
-
-init();
