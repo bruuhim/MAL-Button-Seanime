@@ -11,7 +11,19 @@
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] v2.3.6 (Debug) Initializing...");
+        console.log("[MAL Button] v2.3.7 (Diagnostics) Initializing...");
+
+        try {
+            console.log("[MAL Button] Context Keys:", Object.keys(ctx || {}).join(", "));
+            console.log("[MAL Button] typeof window:", typeof window);
+            console.log("[MAL Button] typeof document:", typeof document);
+            console.log("[MAL Button] typeof globalThis:", typeof globalThis);
+            if (typeof globalThis !== "undefined") {
+                console.log("[MAL Button] Global Keys:", Object.keys(globalThis).filter(k => k !== "console").slice(0, 20).join(", "));
+            }
+        } catch (e) {
+            console.log("[MAL Button] Diagnostic error:", e);
+        }
 
         // --- State Management ---
         const malUrlState = ctx.state<string | null>(null);
@@ -23,8 +35,15 @@ function init() {
                 console.log("[MAL Button] injectButton ENTRY. navId:", navId);
 
                 if (typeof document === "undefined") {
-                    console.log("[MAL Button] document is undefined.");
-                    return;
+                    const hasWindowDoc = typeof window !== "undefined" && !!window.document;
+                    console.log("[MAL Button] document is undefined. window.document exists?", hasWindowDoc);
+                    if (hasWindowDoc) {
+                        // Attempt to use window.document
+                        (globalThis as any).document = (window as any).document;
+                        console.log("[MAL Button] Attempted to patch document from window.");
+                    } else {
+                        return;
+                    }
                 }
 
                 // Determine the Anime ID
@@ -168,7 +187,7 @@ function init() {
                     const path = data.pathname || data.path;
                     if (path && (path.includes("/entry") || path.includes("/anime"))) {
                         const searchId = data.searchParams?.id;
-                        console.log("[MAL Button] v2.3.6 Navigation detected, ID:", searchId);
+                        console.log("[MAL Button] v2.3.7 Navigation detected, ID:", searchId);
                         if (searchId) {
                             // Inject with ID
                             injectButton(Number(searchId));
