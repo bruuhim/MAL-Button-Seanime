@@ -102,13 +102,22 @@ function init() {
         // This is the key: Run injection on navigation
         // Based on feedback from notwen
         if (ctx.screen && ctx.screen.onNavigate) {
-            ctx.screen.onNavigate((url: string) => {
+            ctx.screen.onNavigate((url: any) => {
+                console.log("[MAL Button] onNavigate fired:", url);
+
+                if (!url) return;
+
+                // Handle case where url might be an object or different type
+                const urlString = typeof url === "string" ? url : String(url);
+                console.log("[MAL Button] Checking key:", urlString);
+
                 // We check if we are on an anime page
-                if (url.includes("/anime/")) {
+                if (urlString && urlString.includes && urlString.includes("/anime/")) {
                     // Try to inject. We might need to wait for DOM to be ready.
-                    // Since setTimeout is blocked, we rely on onNavigate firing *after* mount or running synchronous DOM checks.
-                    // If this fails, we might need a workaround, but this is the official way.
+                    console.log("[MAL Button] URL matches anime page, injecting...");
                     injectButton();
+                } else {
+                    console.log("[MAL Button] URL does not match anime page.");
                 }
             });
         }
