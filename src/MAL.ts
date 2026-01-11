@@ -11,10 +11,13 @@
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] v2.3.7 (Diagnostics) Initializing...");
+        console.log("[MAL Button] v2.3.8 (Diagnostics) Initializing... (ctx.dom check)");
 
         try {
             console.log("[MAL Button] Context Keys:", Object.keys(ctx || {}).join(", "));
+            if (ctx.dom) {
+                console.log("[MAL Button] ctx.dom Keys:", Object.keys(ctx.dom).join(", "));
+            }
             console.log("[MAL Button] typeof window:", typeof window);
             console.log("[MAL Button] typeof document:", typeof document);
             console.log("[MAL Button] typeof globalThis:", typeof globalThis);
@@ -187,7 +190,7 @@ function init() {
                     const path = data.pathname || data.path;
                     if (path && (path.includes("/entry") || path.includes("/anime"))) {
                         const searchId = data.searchParams?.id;
-                        console.log("[MAL Button] v2.3.7 Navigation detected, ID:", searchId);
+                        console.log("[MAL Button] v2.3.8 Navigation detected, ID:", searchId);
                         if (searchId) {
                             // Inject with ID
                             injectButton(Number(searchId));
