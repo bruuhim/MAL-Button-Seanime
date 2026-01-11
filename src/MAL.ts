@@ -5,13 +5,13 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button to anime details page with native styling
  * 
- * @version 2.6.0
+ * @version 2.6.1
  * @author bruuhim
  */
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] v2.6.0 (Anchor Refactor) Initializing...");
+        console.log("[MAL Button] v2.6.1 (Anchor Refactor) Initializing...");
 
 
         // --- State Management ---
@@ -125,42 +125,14 @@ function init() {
         }
 
         // --- Event Handlers ---
-
-        // This is the key: Run injection on navigation
-        // Based on feedback from notwen
         if (ctx.screen && ctx.screen.onNavigate) {
-            ctx.screen.onNavigate((data: any) => {
-                // console.log("[MAL Button] onNavigate:", data);
-                if (!data) return;
-
-                // Handle object with pathname/searchParams (Seanime v2.7+)
-                if (typeof data === "object" && (data.pathname || data.path)) {
-                    const path = data.pathname || data.path;
-                    if (path && (path.includes("/entry") || path.includes("/anime"))) {
-                        const searchId = data.searchParams?.id;
-                        console.log("[MAL Button] v2.4.8 Navigation detected, ID:", searchId);
-                        if (searchId) {
-                            // Inject with ID
-                            injectButton(Number(searchId));
-
-                            // Also try again after 500ms in case of render delay (using setTimeout if not strictly blocked, 
-                            // but since we know it's blocked, we can't. 
-                            // We'll trust the DOM is reactive or onNavigate fires after mount).
-                            return;
-                        }
-                    }
-                }
-
-                // Legacy string check
-                if (typeof data === "string" && data.includes("/anime/")) {
-                    injectButton();
-                }
+            ctx.screen.onNavigate(async (nav: any) => {
+                console.log("[MAL Button] v2.6.1 Navigation detected, ID:", nav?.navId);
+                await injectButton(nav?.navId);
             });
         }
 
         // Initial load check
         injectButton();
-
-
     });
 }
