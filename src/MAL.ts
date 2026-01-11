@@ -11,7 +11,7 @@
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] v2.4.9 (SetProp Fix Real) Initializing...");
+        console.log("[MAL Button] v2.5.0 (Async DOM) Initializing...");
 
 
         // --- State Management ---
@@ -22,6 +22,7 @@ function init() {
         const injectButton = async (navId?: number) => {
             // SAFE ATTRIBUTE SETTER
             const setProp = (el: any, key: string, val: string) => {
+                if (!el) return;
                 try {
                     let hasSetAttr = false;
                     try { hasSetAttr = typeof el.setAttribute === 'function'; } catch (e) { }
@@ -59,13 +60,13 @@ function init() {
                 // The container selector
                 const containerSelector = 'div[data-anime-meta-section-buttons-container="true"]';
 
-                // Find container using ctx.dom
-                const container = ctx.dom.queryOne(containerSelector);
+                // Find container using ctx.dom (awaiting just in case)
+                const container = await ctx.dom.queryOne(containerSelector);
                 console.log("[MAL Button] Container found?", !!container);
 
                 if (container) {
                     // Check if button exists
-                    const existingBtn = ctx.dom.queryOne("#mal-injected-button");
+                    const existingBtn = await ctx.dom.queryOne("#mal-injected-button");
                     if (existingBtn) {
                         console.log("[MAL Button] Button already exists. Removing to re-inject.");
                         try {
@@ -79,8 +80,9 @@ function init() {
                         }
                     }
 
-                    // Create the button using ctx.dom
-                    const btn = ctx.dom.createElement("button");
+                    // Create the button using ctx.dom (AWAITING because it returns a Promise!)
+                    const btn = await ctx.dom.createElement("button");
+                    console.log("[MAL Button] Button Created:", btn);
 
                     // USE SETPROP INSTEAD OF SETATTRIBUTE
                     setProp(btn, "id", "mal-injected-button");
@@ -97,26 +99,30 @@ function init() {
                     }
 
                     // On Click
-                    btn.addEventListener("click", async () => {
-                        try {
-                            ctx.toast.info("Fetching MAL link...");
-                            const animeEntry = await ctx.anime.getAnimeEntry(animeId);
-                            const malId = await getMalId(animeEntry.media);
+                    if (typeof btn.addEventListener === "function") {
+                        btn.addEventListener("click", async () => {
+                            try {
+                                ctx.toast.info("Fetching MAL link...");
+                                const animeEntry = await ctx.anime.getAnimeEntry(animeId);
+                                const malId = await getMalId(animeEntry.media);
 
-                            if (malId) {
-                                const url = `https://myanimelist.net/anime/${malId}`;
-                                ctx.action.openUrl(url);
-                            } else {
-                                ctx.toast.error("No MAL ID found");
+                                if (malId) {
+                                    const url = `https://myanimelist.net/anime/${malId}`;
+                                    ctx.action.openUrl(url);
+                                } else {
+                                    ctx.toast.error("No MAL ID found");
+                                }
+                            } catch (e) {
+                                console.error("MAL Click Error", e);
+                                ctx.toast.error("Failed to open MAL");
                             }
-                        } catch (e) {
-                            console.error("MAL Click Error", e);
-                            ctx.toast.error("Failed to open MAL");
-                        }
-                    });
+                        });
+                    } else {
+                        console.log("[MAL Button] addEventListener is missing on created element.");
+                    }
 
                     // Determine insertion point
-                    const anilistLink = container.queryOne("a[href*='anilist.co']");
+                    const anilistLink = await container.queryOne("a[href*='anilist.co']");
                     if (anilistLink) {
                         anilistLink.insertAfter(btn);
                     } else {

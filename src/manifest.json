@@ -1,7 +1,7 @@
 {
   "id": "mal-button",
   "name": "MAL Button",
-  "version": "2.4.9",
+  "version": "2.5.0",
   "manifestURI": "https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/manifest.json",
   "language": "typescript",
   "type": "plugin",
