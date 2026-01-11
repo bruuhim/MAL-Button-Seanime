@@ -5,16 +5,15 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button (blue pill) to anime and manga details pages.
  * 
- * v1.0.1:
- * - Fix handling of "GoError: no cached data available" (graceful try/catch).
- * - Improved robustness when switching between Anime/Manga.
+ * v1.0.11:
+ * - Permanent Rollback to v1.0.1 (Blue Pill + Metadata Selector).
  * 
- * @version 1.0.1
+ * @version 1.0.11
  * @author bruuhim
  */
 
 $ui.register((ctx: any) => {
-    console.log("[MAL Button] v1.0.1 Initializing...");
+    console.log("[MAL Button] v1.0.11 Initializing (Stability Rollback)...");
 
     // --- Constants ---
     const BUTTON_ATTR = "data-mal-button";
