@@ -3,18 +3,16 @@
 
 /**
  * MAL Button Plugin for Seanime
- * v1.0.12:
- * - Proper implementation of function init() per dev/docs.
- * - Removed manual init() call to prevent duplication.
- * - Retains stable v1.0.1 logic (Blue Pill + Metadata Selector).
+ * v1.0.15:
+ * - Stable Rollback to v1.0.12 (Proper init() wrapper + Blue Pill).
  * 
- * @version 1.0.12
+ * @version 1.0.15
  * @author bruuhim
  */
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] v1.0.12 Initializing (Proper Pattern)...");
+        console.log("[MAL Button] v1.0.15 Initializing (Final Stability Rollback)...");
 
         // --- Constants ---
         const BUTTON_ATTR = "data-mal-button";
