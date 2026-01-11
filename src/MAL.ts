@@ -11,7 +11,7 @@
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] v2.4.1 Initializing...");
+        console.log("[MAL Button] v2.4.2 (Diag+Fix) Initializing...");
 
 
         // --- State Management ---
@@ -150,7 +150,7 @@ function init() {
                     const path = data.pathname || data.path;
                     if (path && (path.includes("/entry") || path.includes("/anime"))) {
                         const searchId = data.searchParams?.id;
-                        console.log("[MAL Button] v2.4.1 Navigation detected, ID:", searchId);
+                        console.log("[MAL Button] v2.4.2 Navigation detected, ID:", searchId);
                         if (searchId) {
                             // Inject with ID
                             injectButton(Number(searchId));
