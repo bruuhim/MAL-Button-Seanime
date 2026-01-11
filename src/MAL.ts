@@ -5,13 +5,13 @@
 
 /**
  * MAL Button Plugin for Seanime
- * Adds a MyAnimeList link button (blue pill) to anime details page
+ * Adds a MyAnimeList link button (blue pill) to anime and manga details pages.
  *
- * v3.3.0:
- * - Added polling to wait for container (fixes "slow to show")
- * - Enhanced deduplication logic
+ * v1.0.1:
+ * - Fix handling of "GoError: no cached data available" (graceful try/catch).
+ * - Improved robustness when switching between Anime/Manga.
  *
- * @version 3.3.0
+ * @version 1.0.1
  * @author bruuhim
  */
 
