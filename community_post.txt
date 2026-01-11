@@ -1,0 +1,15 @@
+> **Extension Name:**
+> MAL Button
+> 
+> **Version:**
+> 2.2.0
+> 
+> **GitHub Repository / Download Link:**
+> [Click Here](https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/manifest.json)  / Copy the link below: 
+> `@`@`https://raw.githubusercontent.com/bruuhim/MAL-Button-Seanime/refs/heads/main/src/manifest.json`@`@`
+> 
+> **Description:**
+> Simple plugin for Seanime that adds a MAL button to the anime details page. Now seamlessly integrated next to the AniList button (no more tray!).
+> 
+> **Additional Notes:**
+> v2.2.0 stable. Optimized logic and native UI integration.

@@ -6,7 +6,7 @@
   <p>Premium one-click MAL links directly from anime details page</p>
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.2.0--beta-yellow.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](CHANGELOG.md)
 [![Seanime](https://img.shields.io/badge/seanime-2.7.0+-purple.svg)](https://github.com/5rahim/seanime)
 </div>
 
