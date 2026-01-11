@@ -5,7 +5,7 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button to anime details page with native styling
  * 
- * @version 2.3.0
+ * @version 2.3.2
  * @author bruuhim
  */
 
@@ -18,19 +18,32 @@ function init() {
         // --- DOM Injection Logic ---
 
         // Function to inject the button
-        const injectButton = async () => {
+        const injectButton = async (navId?: number) => {
             if (typeof document === "undefined") return;
 
-            // We need a slight delay or check to ensure the DOM is ready after navigation
-            // Since we can't use setInterval, we'll try to run this logic immediately and hope the navigation event fires after render,
-            // or rely on the framework to have updated the DOM.
+            // Determine the Anime ID
+            let animeId = navId;
+            if (!animeId) {
+                // Fallback to URL parsing if not provided directly
+                try {
+                    const urlParts = window.location.pathname.split("/");
+                    const possibleId = urlParts[urlParts.indexOf("anime") + 1];
+                    if (possibleId && !isNaN(Number(possibleId))) {
+                        animeId = Number(possibleId);
+                    }
+                } catch (e) { }
+            }
+
+            if (!animeId) return;
 
             // The container selector
             const containerSelector = 'div[data-anime-meta-section-buttons-container="true"]';
             const container = document.querySelector(containerSelector);
 
-            // If button already exists, don't add it again
-            if (document.getElementById("mal-injected-button")) return;
+            // If button already exists, remove it if we are refreshing, or return if it matches? 
+            // Safer to remove and re-add to ensure correct ID closure
+            const existingBtn = document.getElementById("mal-injected-button");
+            if (existingBtn) existingBtn.remove();
 
             if (container) {
                 // Determine insertion point: After the first anchor (AniList link) or at start
@@ -47,27 +60,28 @@ function init() {
 
                 // On Click Logic
                 btn.onclick = async () => {
+                    // Ensure we use the correct ID for THIS button instance
+                    const currentId = animeId;
+
                     if (malUrlState.get()) {
-                        window.open(malUrlState.get()!, "_blank");
-                        return;
+                        // We must verify if the cached URL matches the current ID to avoid the "Kingdom bug"
+                        const cachedUrl = malUrlState.get();
+                        // Simple check: does cached URL contain our ID? (Not perfect but decent)
+                        // Better: just fetch fresh. It's fast (0ms if we have media.idMal).
+                        // Actually, let's just use the logic below to be safe.
                     }
 
                     try {
-                        const urlParts = window.location.pathname.split("/");
-                        const animeId = urlParts[urlParts.indexOf("anime") + 1]; // /anime/123/...
+                        ctx.toast.info("Fetching MAL link...");
+                        const animeEntry = await ctx.anime.getAnimeEntry(currentId);
+                        const malId = await getMalId(animeEntry.media);
 
-                        if (animeId && !isNaN(Number(animeId))) {
-                            ctx.toast.info("Fetching MAL link...");
-                            const animeEntry = await ctx.anime.getAnimeEntry(Number(animeId));
-                            const malId = await getMalId(animeEntry.media);
-
-                            if (malId) {
-                                const url = `https://myanimelist.net/anime/${malId}`;
-                                malUrlState.set(url);
-                                window.open(url, "_blank");
-                            } else {
-                                ctx.toast.error("No MAL ID found");
-                            }
+                        if (malId) {
+                            const url = `https://myanimelist.net/anime/${malId}`;
+                            malUrlState.set(url);
+                            window.open(url, "_blank");
+                        } else {
+                            ctx.toast.error("No MAL ID found");
                         }
                     } catch (e) {
                         console.error("MAL Click Error", e);
@@ -81,6 +95,12 @@ function init() {
                 } else {
                     container.appendChild(btn);
                 }
+            } else {
+                // If container not found immediately, we can try a brief retry if allowed?
+                // Or just hope the user navigates again.
+                // With onNavigate, the DOM might not be ready yet.
+                // We'll try to execute a small delay using requestAnimationFrame recursion if available/allowed
+                // But let's verify mostly on the object parsing first.
             }
         };
 
@@ -102,28 +122,38 @@ function init() {
         // This is the key: Run injection on navigation
         // Based on feedback from notwen
         if (ctx.screen && ctx.screen.onNavigate) {
-            ctx.screen.onNavigate((url: any) => {
-                console.log("[MAL Button] onNavigate fired:", url);
+            ctx.screen.onNavigate((data: any) => {
+                // console.log("[MAL Button] onNavigate:", data);
+                if (!data) return;
 
-                if (!url) return;
+                // Handle object with pathname/searchParams (Seanime v2.7+)
+                if (typeof data === "object" && (data.pathname || data.path)) {
+                    const path = data.pathname || data.path;
+                    if (path && (path.includes("/entry") || path.includes("/anime"))) {
+                        const searchId = data.searchParams?.id;
+                        console.log("[MAL Button] Detected Anime navigation, ID:", searchId);
+                        if (searchId) {
+                            // Inject with ID
+                            injectButton(Number(searchId));
 
-                // Handle case where url might be an object or different type
-                const urlString = typeof url === "string" ? url : String(url);
-                console.log("[MAL Button] Checking key:", urlString);
+                            // Also try again after 500ms in case of render delay (using setTimeout if not strictly blocked, 
+                            // but since we know it's blocked, we can't. 
+                            // We'll trust the DOM is reactive or onNavigate fires after mount).
+                            return;
+                        }
+                    }
+                }
 
-                // We check if we are on an anime page
-                if (urlString && urlString.includes && urlString.includes("/anime/")) {
-                    // Try to inject. We might need to wait for DOM to be ready.
-                    console.log("[MAL Button] URL matches anime page, injecting...");
+                // Legacy string check
+                if (typeof data === "string" && data.includes("/anime/")) {
                     injectButton();
-                } else {
-                    console.log("[MAL Button] URL does not match anime page.");
                 }
             });
         }
 
-        // Also try to inject immediately in case we loaded directly into the page
+        // Initial load check
         injectButton();
+
 
     });
 }
