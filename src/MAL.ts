@@ -5,17 +5,16 @@
  * MAL Button Plugin for Seanime
  * Adds a MyAnimeList link button to anime details page with native styling
  * 
- * @version 2.7.1
+ * @version 2.7.2
  * @author bruuhim
  */
 
 function init() {
     $ui.register((ctx: any) => {
-        console.log("[MAL Button] v2.7.1 (Visual Update) Initializing...");
+        console.log("[MAL Button] v2.7.2 Initializing...");
 
-
-        // --- State Management ---
-        const currentAnimeId = ctx.state<number | null>(null);
+        // --- State Management (simple closure variable) ---
+        let currentAnimeId: number | null = null;
 
         // --- DOM Injection Logic ---
 
@@ -23,7 +22,7 @@ function init() {
         const injectButton = async (navId?: number) => {
             try {
                 // Determine the Anime ID
-                const animeId = navId || currentAnimeId.getValue();
+                const animeId = navId || currentAnimeId;
 
                 if (!animeId) {
                     // console.log("[MAL Button] No Anime ID available for injection.");
@@ -100,8 +99,8 @@ function init() {
         if (ctx.screen && ctx.screen.onNavigate) {
             ctx.screen.onNavigate(async (nav: any) => {
                 if (nav?.navId) {
-                    console.log("[MAL Button] v2.7.1 Navigation detected, ID:", nav.navId);
-                    currentAnimeId.setValue(nav.navId);
+                    console.log("[MAL Button] v2.7.2 Navigation detected, ID:", nav.navId);
+                    currentAnimeId = nav.navId;
                     await injectButton(nav.navId);
                 }
             });
